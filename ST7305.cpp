@@ -192,3 +192,34 @@ void ST7305::drawPixel(int16_t x, int16_t y, uint16_t color) {
         buffer[byte_idx] &= ~(1 << bit_pos);
     }
 }
+
+void ST7305::setRotation(uint8_t r) {
+    Adafruit_GFX::setRotation(r % 4);
+    
+    switch (rotation) {
+        case 0:
+            sendCommand(0x36);  // MADCTL
+            sendData(0x00);     // Normal orientation (0 degrees)
+            _width = WIDTH;
+            _height = HEIGHT;
+            break;
+        case 1:
+            sendCommand(0x36);  // MADCTL
+            sendData(0x60);     // 90 degrees rotation
+            _width = HEIGHT;
+            _height = WIDTH;
+            break;
+        case 2:
+            sendCommand(0x36);  // MADCTL
+            sendData(0xC0);     // 180 degrees rotation
+            _width = WIDTH;
+            _height = HEIGHT;
+            break;
+        case 3:
+            sendCommand(0x36);  // MADCTL
+            sendData(0xA0);     // 270 degrees rotation
+            _width = HEIGHT;
+            _height = WIDTH;
+            break;
+    }
+}
