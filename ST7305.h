@@ -15,14 +15,15 @@ class ST7305 : public Adafruit_GFX {
     void display();
     void clearDisplay();
     void drawPixel(int16_t x, int16_t y, uint16_t color);
-    
+    void setRotation(uint8_t m) ;
   private:
     SPIClass *_spi;
     int8_t _cs_pin;
     int8_t _dc_pin;
     int8_t _rst_pin;
     int8_t _te_pin;
-    
+        uint8_t rotation;  // 0, 1, 2, or 3 corresponding to 0, 90, 180, 270 degrees
+
     uint8_t *buffer;       // 384 * 21 bytes (each byte maps to 8 vertical pixels)
     uint8_t *temp_buffer;  // 192 * 14 * 3 bytes (conversion buffer)
     

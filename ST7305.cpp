@@ -7,7 +7,7 @@ ST7305::ST7305(int16_t w, int16_t h, SPIClass *spi, int8_t cs_pin, int8_t dc_pin
     _cs_pin(cs_pin),
     _dc_pin(dc_pin),
     _rst_pin(rst_pin),
-    _te_pin(te_pin) {
+    _te_pin(te_pin),    rotation(0) {  // Initialize rotation to 
     
     buffer = (uint8_t *)malloc(384 * 21);
     temp_buffer = (uint8_t *)malloc(192 * 14 * 3);
@@ -181,10 +181,31 @@ void ST7305::drawPixel(int16_t x, int16_t y, uint16_t color) {
     if (x < 0 || x >= width() || y < 0 || y >= height()) {
         return;
     }
+
+    int16_t new_x, new_y;
+    
+    switch (rotation) {
+        case 1:  // 90 degrees
+            new_x = height() - y - 1;
+            new_y = x;
+            break;
+        case 2:  // 180 degrees
+            new_x = width() - x - 1;
+            new_y = height() - y - 1;
+            break;
+        case 3:  // 270 degrees
+            new_x = y;
+            new_y = width() - x - 1;
+            break;
+        default: // 0 degrees
+            new_x = x;
+            new_y = y;
+            break;
+    }
     
     // Calculate byte position and bit position within byte
-    uint16_t byte_idx = (y >> 3) * 384 + x;
-    uint8_t bit_pos = y & 0x07;
+    uint16_t byte_idx = (new_y >> 3) * 384 + new_x;
+    uint8_t bit_pos = new_y & 0x07;
     
     if (color) {
         buffer[byte_idx] |= (1 << bit_pos);
@@ -192,34 +213,6 @@ void ST7305::drawPixel(int16_t x, int16_t y, uint16_t color) {
         buffer[byte_idx] &= ~(1 << bit_pos);
     }
 }
-
-void ST7305::setRotation(uint8_t r) {
-    Adafruit_GFX::setRotation(r % 4);
-    
-    switch (rotation) {
-        case 0:
-            sendCommand(0x36);  // MADCTL
-            sendData(0x00);     // Normal orientation (0 degrees)
-            _width = WIDTH;
-            _height = HEIGHT;
-            break;
-        case 1:
-            sendCommand(0x36);  // MADCTL
-            sendData(0x60);     // 90 degrees rotation
-            _width = HEIGHT;
-            _height = WIDTH;
-            break;
-        case 2:
-            sendCommand(0x36);  // MADCTL
-            sendData(0xC0);     // 180 degrees rotation
-            _width = WIDTH;
-            _height = HEIGHT;
-            break;
-        case 3:
-            sendCommand(0x36);  // MADCTL
-            sendData(0xA0);     // 270 degrees rotation
-            _width = HEIGHT;
-            _height = WIDTH;
-            break;
-    }
+void ST7305::setRotation(uint8_t m) {
+    rotation = m % 4;  // Ensure rotation is within 0-3
 }
